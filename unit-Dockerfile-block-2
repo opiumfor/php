@@ -1,0 +1,24 @@
+# make && install nginx unit
+RUN set -eux; \
+	apk add --no-cache --virtual .build-deps \
+		file \
+		g++ \
+		gcc \
+		libc-dev \
+		make \
+		pkgconf \
+    && curl -O https://unit.nginx.org/download/unit-1.10.0.tar.gz \
+    && tar xzf unit-1.10.0.tar.gz \
+    && cd unit-1.10.0 \
+    && ./configure --no-unix-sockets --state=/state --prefix=/ \
+    && ./configure php --module=php --config=/usr/local/bin/php-config --lib-path=/usr/local/lib/php \
+    && make -j4\
+    && make install clean \
+    && apk del --no-network .build-deps
+
+# forward log to docker log collector
+RUN ln -sf /dev/stdout /var/log/unit.log
+
+STOPSIGNAL SIGTERM
+
+CMD ["unitd", "--no-daemon", "--control", "127.0.0.1:8080"]
