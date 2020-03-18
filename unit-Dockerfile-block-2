@@ -7,17 +7,26 @@ RUN set -eux; \
 		libc-dev \
 		make \
 		pkgconf \
-    && curl -O https://unit.nginx.org/download/unit-1.10.0.tar.gz \
-    && tar xzf unit-1.10.0.tar.gz \
-    && cd unit-1.10.0 \
-    && ./configure --no-unix-sockets --state=/state --prefix=/ \
-    && ./configure php --module=php --config=/usr/local/bin/php-config --lib-path=/usr/local/lib/php \
-    && make -j4\
+    && curl -O https://unit.nginx.org/download/unit-1.16.0.tar.gz \
+    && tar xzf unit-1.16.0.tar.gz \
+    && cd unit-1.16.0 \
+    && ./configure \
+                   --no-unix-sockets \
+                   --state=/state \
+                   --prefix=/ \
+                   --no-ipv6 \
+                   --pid=/tmp/unit.pid \
+    && ./configure php \
+                   --module=php \
+                   --config=/usr/local/bin/php-config \
+                   --lib-path=/usr/local/lib/php \
+    && make -j4 \
     && make install clean \
+    && mkdir /state/certs \
     && apk del --no-network .build-deps
 
 # forward log to docker log collector
-RUN ln -sf /dev/stdout /var/log/unit.log
+RUN ln -sf /dev/stdout /unit.log
 
 STOPSIGNAL SIGTERM
 
